@@ -20,14 +20,16 @@
     var quiz_id = $(this).data('quiz-id');
     var wpss_id = "#wpss_quiz_" + quiz_id;
     var question_count = parseInt( $(this).data('question-count') );
-    var answered_panels = []
-
+    var answered_panels = [];
+    var panel = '.wpss_panel_' . concat( current );
+    
+    nextEnabler();
 
     /************************************************************/
     /* Next Button Click Handler                                */
     /************************************************************/
-    $(".wpss_next", wpss_id).click(function(e) {  
-      e.preventDefault();    
+    $(".wpss_next", wpss_id).click(function(e) {
+      e.preventDefault();
       if( !$(this).hasClass('wpss_disabled') && !$(this).hasClass('wpss-fields-panel') ){
 
         panel = '.wpss_panel_' . concat( current );
@@ -39,7 +41,6 @@
   
         $(".wpss_back", wpss_id).removeAttr("disabled").removeClass('wpss_disabled');
   
-  
         if( $(panel, wpss_id).hasClass('wpss-fields-panel') ){
           $(".wpss_next", wpss_id).attr("disabled", "disabled").addClass('wpss_disabled');
         } else {
@@ -48,10 +49,12 @@
           }
         }
 
+        nextEnabler();
+
         $(".wpss-progress-bar span", wpss_id).css('width', 100*(current-1)/question_count  + '%');
 
       }
-    });      
+    });
 
 
     /************************************************************/
@@ -84,25 +87,57 @@
     /************************************************************/
     /* Next button enable handler                               */
     /************************************************************/
-    $("input[type='radio'], input[type='checkbox'], select", wpss_id).change(function() {          
+    $("input[type='radio'], input[type='checkbox'], select", wpss_id).change(function() {
       panel = '.wpss_panel_' . concat( current );
       if( !$(panel, wpss_id).hasClass('wpss-fields-panel') ){
         if( $.inArray( panel, answered_panels ) == -1 ){
           answered_panels.push( panel );
         }
-        $(".wpss_next", wpss_id).removeAttr("disabled").removeClass('wpss_disabled');
+        nextEnabler();
       }
     });
 
-    $("textarea, input[type='text']", wpss_id).keydown(function() {
+    $("textarea, input[type='text']", wpss_id).keyup(function() {
       panel = '.wpss_panel_' . concat( current );
       if( !$(panel, wpss_id).hasClass('wpss-fields-panel') ){
         if( $.inArray( panel, answered_panels ) == -1 ){
           answered_panels.push( panel );
         }
-        $(".wpss_next", wpss_id).removeAttr("disabled").removeClass('wpss_disabled');
+        nextEnabler();
       }
     });
 
-  }
+    function nextEnabler() {
+      var show_next = false;
+      
+      $("input, select, textarea", panel, wpss_id).each(function() {
+        var element = $(this);
+
+        switch(element.prop('type')) {
+          case "radio":
+            if(element.is(':checked')) show_next = true;
+            break;
+          case "checkbox":
+            if(element.is(':checked')) show_next = true;
+            break;
+          case "select-one":
+            if(element.val()) show_next = true;
+            break;
+          case "text":
+            if(element.val()) show_next = true;
+            break;
+          case "textarea":
+            if(element.val()) show_next = true;
+            break;
+        }
+      });
+
+      if( show_next === true ) {
+        $(".wpss_next", wpss_id).removeAttr("disabled").removeClass('wpss_disabled');
+      } else {
+        $(".wpss_next", wpss_id).attr("disabled", "disabled").addClass('wpss_disabled');
+      }
+    }
+
+  };
 }( jQuery ));
